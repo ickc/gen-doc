@@ -1,0 +1,5 @@
+.pixi/
+*.egg-info
+index.*
+mkdocs.yml
+public/
