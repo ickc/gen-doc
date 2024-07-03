@@ -24,8 +24,11 @@ clean:  ## Clean all projects
 # TODO: refactor to handle different default branch for different projects
 update:  ## Update all submodules
 	git submodule update --init --recursive
-	git submodule foreach git checkout main
-	git submodule foreach git pull origin main
+	@for case in $(CASES); do \
+		cd $$case; \
+		$(MAKE) update; \
+		cd ..; \
+	done
 
 # modified from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:  ## print this help message

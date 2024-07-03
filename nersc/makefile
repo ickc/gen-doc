@@ -55,5 +55,6 @@ format:
 	isort parse_mkdocs.py
 update:
 	pixi update
+	cd git; git checkout main; git pull origin main
 print-%:
 	$(info $* = $($*))
