@@ -7,3 +7,7 @@ MANUAL.txt:
 all: single_file
 clean:
 	rm -f MANUAL.txt
+update:
+	url="$$(curl -sIL -o /dev/null -w "%{url_effective}\n" https://github.com/jgm/pandoc/releases/latest)"; \
+	version="$${url##*/}"; \
+	sed -i "s/^VERSION=.*/VERSION=$$version/" $(MAKEFILE_LIST)
