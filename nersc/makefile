@@ -49,6 +49,8 @@ serve:
 clean:
 	rm -f $(ALL)
 	rm -rf public
+Clean: clean
+	rm -rf .pixi
 format:
 	autoflake --in-place --recursive --expand-star-imports --remove-all-unused-imports --ignore-init-module-imports --remove-duplicate-keys --remove-unused-variables parse_mkdocs.py
 	black parse_mkdocs.py

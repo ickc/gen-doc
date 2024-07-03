@@ -2,7 +2,7 @@
 
 CASES = $(patsubst ./%,%,$(shell find . -mindepth 1 -maxdepth 1 \! -path './.*' -type d))
 
-.PHONY: single_file clean update help
+.PHONY: single_file clean Clean update help
 single_file:  ## Generate single file for each projects
 	@for case in $(CASES); do \
 		cd $$case; \
@@ -15,10 +15,16 @@ all:  ## Generate all files for each projects
 		$(MAKE) all; \
 		cd ..; \
 	done
-clean:  ## Clean all projects
+clean:  ## Clean all projects targets
 	@for case in $(CASES); do \
 		cd $$case; \
 		$(MAKE) clean; \
+		cd ..; \
+	done
+Clean:  ## Clean all projects including everything it generates
+	@for case in $(CASES); do \
+		cd $$case; \
+		$(MAKE) Clean; \
 		cd ..; \
 	done
 # TODO: refactor to handle different default branch for different projects
