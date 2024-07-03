@@ -1,3 +1,5 @@
 [submodule "nersc/git"]
 	path = nersc/git
 	url = https://gitlab.com/NERSC/nersc.gitlab.io.git
+	branch = main
+	shallow = true
