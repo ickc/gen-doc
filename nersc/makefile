@@ -1,6 +1,6 @@
 # source md
 MKDOCS_YML = git/mkdocs.yml
-REL_FILES = $(shell ./parse_mkdocs.py filename $(MKDOCS_YML))
+REL_FILES = $(shell pixi run ./parse_mkdocs.py filename $(MKDOCS_YML))
 FILES = $(patsubst %,docs/%,$(REL_FILES))
 
 # serves
@@ -16,7 +16,7 @@ all: $(ALL)
 
 # simple concat target
 index.md: $(MKDOCS_YML) $(FILES)
-	./parse_mkdocs.py concat $< -d docs -o $@
+	pixi run ./parse_mkdocs.py concat $< -d docs -o $@
 
 # heavy lifting by pandoc
 .PHONY: pandoc
@@ -29,9 +29,9 @@ pandoc: index.markdown index.txt
 # index.pdf: $(FILES)
 # 	pandoc $(args) -o $@ $^
 index.markdown: public/print_page/index.html
-	cd $(<D); pandoc -s -o ../../$@ $(<F) -t gfm-raw_html
+	cd $(<D); pixi run pandoc -s -o ../../$@ $(<F) -t gfm-raw_html
 index.txt: public/print_page/index.html
-	cd $(<D); pandoc -s -o ../../$@ $(<F) -t plain
+	cd $(<D); pixi run pandoc -s -o ../../$@ $(<F) -t plain
 
 # directly using mkdocs by upstream
 mkdocs.yml: $(MKDOCS_YML)
@@ -40,17 +40,20 @@ mkdocs.yml: $(MKDOCS_YML)
 .PHONY: docs
 docs: public/print_page/index.html
 public/print_page/index.html: mkdocs.yml $(FILES)
-	mkdocs build
+	pixi run mkdocs build
 
 # misc
 .PHONY: serve clean format
 serve:
-	cd public; python -m http.server $(PORT) --bind 127.0.0.1
+	cd public; pixi run python -m http.server $(PORT) --bind 127.0.0.1
 clean:
 	rm -f $(ALL)
+	rm -rf public
 format:
 	autoflake --in-place --recursive --expand-star-imports --remove-all-unused-imports --ignore-init-module-imports --remove-duplicate-keys --remove-unused-variables parse_mkdocs.py
 	black parse_mkdocs.py
 	isort parse_mkdocs.py
+update:
+	pixi update
 print-%:
 	$(info $* = $($*))
