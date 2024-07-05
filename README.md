@@ -6,13 +6,7 @@ Each subdirectories should contains a single documentation project. Within each,
 
 - `makefile` with targets `single_file`, `all`, `clean`, `Clean`, s`update`.
 
-    - `single_file` should make the best single file target, with
-
-        ```makefile
-        single_file: ...
-            ...
-            @echo "single file is ready at $$(realpath $<)"
-        ```
+    - `single_file` should make the best single file target, and make a copy at `build/` with the name of that subdirectory and an appropriate extension.
 
     - `all` make all single file targets, including `single_file` and optionally other alternative single file targets.
 

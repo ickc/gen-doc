@@ -11,7 +11,8 @@ ALL = index.md index.markdown index.txt mkdocs.yml public/print_page/index.html
 .PHONY: single_file all
 # choose the best single file format here
 single_file: public/print_page/index.html
-	@echo "single file is ready at $$(realpath $<)"
+	mkdir -p ../build
+	cp $< ../build/nersc.html
 all: $(ALL)
 
 # simple concat target

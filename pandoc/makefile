@@ -1,7 +1,8 @@
 VERSION=3.2.1
 
 single_file: MANUAL.txt
-	@echo "single file is ready at $$(realpath $<)"
+	mkdir -p ../build
+	cp $< ../build/pandoc.md
 MANUAL.txt:
 	wget https://raw.githubusercontent.com/jgm/pandoc/$(VERSION)/MANUAL.txt
 all: single_file

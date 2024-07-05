@@ -7,7 +7,8 @@ HTML = $(shell find $(DOMAIN)/$(SUBDIR) -type f -iname '*.html')
 
 .PHONY: single_file all
 single_file: index.md
-	@echo "single file is ready at $$(realpath $<)"
+	mkdir -p ../build
+	cp $< ../build/flox.md
 all: single_file pandoc
 
 args = -f html --file-scope
