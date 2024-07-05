@@ -19,3 +19,13 @@ Each subdirectories should contains a single documentation project. Within each,
 - `.gitignore`
 
 - optionally `README.md`
+
+# Tips and examples
+
+- For downloading from GitHub, see the `pandoc/` example.
+
+- For adding a git submodule and building a single page target, see the `nersc/` example.
+
+- For generic website crawling and concat, see the `flox/` example.
+
+- For concatenation of multiple source files, see the `nersc/` and `devbox/` examples.
