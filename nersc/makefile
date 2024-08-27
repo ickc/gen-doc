@@ -10,9 +10,9 @@ ALL = index.md index.markdown index.txt mkdocs.yml public/print_page/index.html
 
 .PHONY: single_file all
 # choose the best single file format here
-single_file: public/print_page/index.html
+single_file: index.markdown
 	mkdir -p ../build
-	cp $< ../build/nersc.html
+	cp $< ../build/nersc.md
 all: $(ALL)
 
 # simple concat target
