@@ -4,7 +4,7 @@ This builds single file targets from documentations, primarily for the purpose o
 
 Each subdirectories should contains a single documentation project. Within each, it must contains
 
-- `makefile` with targets `single_file`, `all`, `clean`, `Clean`, s`update`.
+- `makefile` with targets `single_file`, `all`, `clean`, `Clean`, `update`.
 
     - `single_file` should make the best single file target, and make a copy at `build/` with the name of that subdirectory and an appropriate extension.
 
@@ -29,3 +29,9 @@ Each subdirectories should contains a single documentation project. Within each,
 - For generic website crawling and concat, see the `flox/` example.
 
 - For concatenation of multiple source files, see the `nersc/` and `devbox/` examples.
+
+## Submodules
+
+```bash
+git submodule add URL PROJECT/git
+```
