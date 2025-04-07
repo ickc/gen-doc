@@ -1,0 +1,6 @@
+.pixi/
+.cache/
+*.egg-info
+index.*
+mkdocs.yml
+site/

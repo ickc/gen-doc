@@ -11,3 +11,6 @@
 [submodule "python-patterns/git"]
 	path = python-patterns/git
 	url = https://github.com/brandon-rhodes/python-patterns.git
+[submodule "pixi/git"]
+	path = pixi/git
+	url = https://github.com/prefix-dev/pixi.git
