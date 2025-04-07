@@ -1,4 +1,4 @@
-VERSION=3.3
+VERSION=3.6.4
 
 single_file: MANUAL.txt
 	mkdir -p ../build
