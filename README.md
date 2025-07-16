@@ -42,7 +42,7 @@ In some cases, tools involve is commonly available on UNIX and hence a custom en
 
 ### Simply Download
 
-Example: `pandoc`
+Examples: `pandoc`, `Pkg.jl`
 
 ### Simply concat
 
