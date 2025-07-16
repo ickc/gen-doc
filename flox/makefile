@@ -1,33 +1,25 @@
-PORT = 9001
-DOMAIN = flox.dev
-SUBDIR = docs
-URL = https://$(DOMAIN)/$(SUBDIR)/
+# source md
+PROJECT = flox
+DOC_ROOT = git/docs
+FILES = $(shell find -L $(DOC_ROOT) -type f -name '*.md' | sort --dictionary-order --ignore-case)
 
-HTML = $(shell find $(DOMAIN)/$(SUBDIR) -type f -iname '*.html')
-
-.PHONY: single_file all
+.PHONY: single_file all clean Clean update
 single_file: index.md
 	mkdir -p ../build
-	cp $< ../build/flox.md
-all: single_file pandoc
-
-args = -f html --file-scope
-.PHONY: pandoc
-pandoc: index.md index.html index.txt
-index.md: $(HTML)
-	pandoc $(args) -s -o $@ $^ -t gfm-raw_html
-index.html: $(HTML)
-	pandoc $(args) -s -o $@ $^ -t html
-index.txt: $(HTML)
-	pandoc $(args) -s -o $@ $^ -t plain
-
-.PHONY: clean Clean update serve
+	cp $< ../build/$(PROJECT).md
+all: single_file
 clean:
+	rm -rf index.md
 Clean: clean
-	rm -rf $(DOMAIN)
 update:
-	wget --mirror --convert-links --execute robots=off --include-directories=/docs $(URL)
-serve:
-	cd $(DOMAIN)/$(SUBDIR); python -m http.server $(PORT) --bind 127.0.0.1
+	cd git; git checkout main; git pull origin main
 print-%:
 	$(info $* = $($*))
+
+index.md: $(FILES)
+	@: > $@
+	@for file in $^; do \
+		printf -- "---\nFrom %s\n\n" "$${file}" >> $@; \
+		cat $$file >> $@; \
+		echo '' >> $@; \
+	done
