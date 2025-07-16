@@ -5,7 +5,7 @@ FILES = $(patsubst %,docs/%,$(REL_FILES))
 # serves
 PORT = 9000
 
-ALL = index.md index.markdown index.txt mkdocs.yml site/print_page/index.html
+ALL = index.markdown index.txt mkdocs.yml site/print_page/index.html
 
 .PHONY: single_file all
 # choose the best single file format here
