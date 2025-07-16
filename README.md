@@ -64,7 +64,7 @@ Previous example: [`flox`](https://github.com/ickc/gen-doc/blob/416d3a941537cd76
 
 We will use the original build system to produce a single file target that is not provided.
 
-Example: `python-patterns` with sphinx
+Examples: `python-patterns`, `gw4-isambard` with sphinx
 
 ### Tweak & rebuild
 
