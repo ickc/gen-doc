@@ -25,11 +25,11 @@ build/python-patterns.md: git/_build/singlehtml/index.html
 		pandoc -s -t gfm-raw_html -o $@ $<
 
 git/_build/latex/PythonPatterns.pdf:
-	cd git; $(MAKE) latexpdf
+	cd git; pixi run $(MAKE) latexpdf
 git/_build/singlehtml/index.html:
-	cd git; $(MAKE) singlehtml
+	cd git; pixi run $(MAKE) singlehtml
 git/_build/epub/PythonPatterns.epub:
-	cd git; $(MAKE) epub
+	cd git; pixi run $(MAKE) epub
 
 .PHONY: clean Clean update
 clean:
@@ -37,4 +37,4 @@ clean:
 Clean: clean
 	rm -rf build
 update:
-	cd git; git pull
+	cd git; git checkout master; git pull origin master
