@@ -22,16 +22,54 @@ Each subdirectories should contains a single documentation project. Within each,
 
 # Tips and examples
 
-- For downloading from GitHub, see the `pandoc/` example.
-
-- For adding a git submodule and building a single page target, see the `nersc/` example.
-
-- For generic website crawling and concat, see the `flox/` example.
-
-- For concatenation of multiple source files, see the `nersc/` and `devbox/` examples.
+Some patterns in creating single file documentations are discussed below.
 
 ## Submodules
+
+Usually we are manipulating from the source of a repository. In that case, add it as a submodule to track it first:
 
 ```bash
 git submodule add URL PROJECT/git
 ```
+
+## Environments
+
+Usually the environment to build a doc is non-trivial. In that case, a reproducible environment should be included, such as via pixi.
+
+In some cases, tools involve is commonly available on UNIX and hence a custom environment is not created.
+
+## Patterns
+
+### Simply Download
+
+Example: `pandoc`
+
+### Simply concat
+
+In some cases, the documentation framework used in a project does not have an option to produce single file documentation. We will then simply concat all relevant doc files and call it a day.
+
+Examples: `devbox`, `flox`
+
+### Crawl & concat
+
+Some projects doesn't even provide the source of documentation. We will use this recipe instead:
+
+1. crawl by wget
+2. convert to markdown by pandoc
+3. concat
+
+Previous example: [`flox`](https://github.com/ickc/gen-doc/blob/416d3a941537cd767a63900b3dde5f72ba0f82c6/flox/makefile)
+
+### Simply build
+
+We will use the original build system to produce a single file target that is not provided.
+
+Example: `python-patterns` with sphinx
+
+### Tweak & rebuild
+
+We would dive into the doc build framework and tweak it so that single file target are produced.
+
+Examples:
+
+- `nersc`, `pixi` with mkdocs and additional plugin `print-site`
