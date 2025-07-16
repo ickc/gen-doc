@@ -14,3 +14,6 @@
 [submodule "pixi/git"]
 	path = pixi/git
 	url = https://github.com/prefix-dev/pixi.git
+[submodule "flox/git"]
+	path = flox/git
+	url = https://github.com/flox/floxdocs.git
