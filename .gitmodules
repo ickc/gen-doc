@@ -20,3 +20,6 @@
 [submodule "gw4-isambard/git"]
 	path = gw4-isambard/git
 	url = https://github.com/gw4-isambard/docs.git
+[submodule "spack/git"]
+	path = spack/git
+	url = https://github.com/spack/spack.git
