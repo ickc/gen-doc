@@ -1,15 +1,16 @@
 .PHONY: single_file
 
-single_file: ../build/spack.md
-../build/spack.md: build/spack.md
+single_file: ../build/spack.txt
+../build/spack.txt: build/spack.txt
 		cp -f $< $@
 
-.PHONY: all pdf html epub md
-all: single_file pdf html epub md
+.PHONY: all pdf html epub md txt
+all: single_file pdf html epub md txt
 pdf: build/spack.pdf
 html: build/spack.html
 epub: build/spack.epub
 md: build/spack.md
+txt: build/spack.txt
 
 build/spack.pdf: git/lib/spack/docs/_build/latex/spack.pdf
 	@mkdir -p build
@@ -23,6 +24,9 @@ build/spack.epub: git/lib/spack/docs/_build/epub/spack.epub
 build/spack.md: git/lib/spack/docs/_build/singlehtml/index.html
 	@mkdir -p build
 	pandoc -s -t gfm-raw_html -o $@ $<
+build/spack.txt: git/lib/spack/docs/_build/singlehtml/index.html
+	@mkdir -p build
+	pandoc -s -t plain -o $@ $<
 
 git/lib/spack/docs/_build/latex/spack.pdf:
 	cd git/lib/spack/docs; pixi run $(MAKE) latexpdf SPHINXOPTS='-D latex_engine=lualatex'
