@@ -1,0 +1,21 @@
+[project]
+name = "spack"
+version = "0.1.0"
+description = "Add a short description here"
+authors = ["Kolen Cheung <christian.kolen@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+
+[dependencies]
+python = "*"
+sphinx = "*"
+sphinxcontrib-programoutput = "*"
+sphinx-copybutton = "*"
+sphinx-design = "*"
+sphinx-rtd-theme = "*"
+python-levenshtein = "*"
+docutils = "*"
+pygments = "*"
+urllib3 = "*"
