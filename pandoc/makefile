@@ -1,9 +1,9 @@
-VERSION=3.7.0.2
+VERSION=3.9
 
 single_file: MANUAL.txt
 	mkdir -p ../build
 	cp $< ../build/pandoc.md
-MANUAL.txt:
+MANUAL.txt: clean
 	wget https://raw.githubusercontent.com/jgm/pandoc/$(VERSION)/MANUAL.txt
 all: single_file
 clean:
