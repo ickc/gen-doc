@@ -31,8 +31,7 @@ index.txt: site/print_page/index.html
 
 # directly using mkdocs by upstream
 mkdocs.yml: $(MKDOCS_YML)
-	cp $< $@
-	echo '  - print-site' >> $@
+	awk '/^plugins:/ {print; print "  - print-site"; next}1' $< > $@
 .PHONY: docs
 docs: site/print_page/index.html
 site/print_page/index.html: mkdocs.yml $(FILES)
