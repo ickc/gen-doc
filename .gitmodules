@@ -3,11 +3,6 @@
 	url = https://gitlab.com/NERSC/nersc.gitlab.io.git
 	branch = main
 	shallow = true
-[submodule "devbox"]
-	path = devbox/git
-	url = https://github.com/jetify-com/devbox.git
-	branch = main
-	shallow = true
 [submodule "python-patterns/git"]
 	path = python-patterns/git
 	url = https://github.com/brandon-rhodes/python-patterns.git
