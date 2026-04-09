@@ -31,7 +31,7 @@ build/spack.txt: git/lib/spack/docs/_build/singlehtml/index.html
 git/lib/spack/docs/_build/latex/spack.pdf:
 	cd git/lib/spack/docs; pixi run $(MAKE) latexpdf SPHINXOPTS='-D latex_engine=lualatex'
 git/lib/spack/docs/_build/singlehtml/index.html:
-	cd git/lib/spack/docs; pixi run $(MAKE) singlehtml
+	cd git/lib/spack/docs; pixi run $(MAKE) singlehtml SPHINXOPTS=
 git/lib/spack/docs/_build/epub/spack.epub:
 	cd git/lib/spack/docs; pixi run $(MAKE) epub
 
