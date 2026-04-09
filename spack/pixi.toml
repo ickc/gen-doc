@@ -9,17 +9,17 @@ platforms = ["osx-arm64"]
 [tasks]
 
 [dependencies]
+docutils = "*"
+furo = "*"
+pygments = "*"
 python = "*"
+python-levenshtein = "*"
 sphinx = "*"
-sphinxcontrib-programoutput = "*"
-sphinxcontrib-svg2pdfconverter = "*"
 sphinx-copybutton = "*"
 sphinx-design = "*"
 sphinx-last-updated-by-git  = "*"
 sphinx-rtd-theme = "*"
 sphinx-sitemap = "*"
-python-levenshtein = "*"
-docutils = "*"
-pygments = "*"
+sphinxcontrib-programoutput = "*"
+sphinxcontrib-svg2pdfconverter = "*"
 urllib3 = "*"
-furo = "*"
