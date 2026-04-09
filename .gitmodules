@@ -18,3 +18,7 @@
 [submodule "spack/git"]
 	path = spack/git
 	url = https://github.com/spack/spack.git
+[submodule "devbox/git"]
+	path = devbox/git
+	url = https://github.com/jetify-com/docs.git
+	branch = main
