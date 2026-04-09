@@ -1,4 +1,4 @@
-VERSION=v1.12.3
+VERSION=v1.12.5
 
 single_file: Pkg.jl.pdf
 	mkdir -p ../build
