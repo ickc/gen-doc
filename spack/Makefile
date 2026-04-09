@@ -41,4 +41,4 @@ clean:
 Clean: clean
 	rm -rf build
 update:
-	cd git; git checkout master; git pull origin master
+	cd git; git checkout develop; git pull origin develop
