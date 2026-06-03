@@ -31,7 +31,7 @@ site/print_page/index.html: mkdocs.yml $(PYTHON_DEPS) $(FILES)
 	$(PIXI_RUN) mkdocs build
 
 index.markdown: site/print_page/index.html
-	$(PIXI_RUN) pandoc -s -o $@ $< -t gfm-raw_html
+	$(PIXI_RUN) pandoc -s -o $@ $< -t gfm-raw_html --extract-media=media --resource-path=site/print_page
 
 index.txt: site/print_page/index.html
 	$(PIXI_RUN) pandoc -s -o $@ $< -t plain

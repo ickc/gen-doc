@@ -25,7 +25,7 @@ pandoc: index.markdown index.txt
 # index.pdf: $(FILES)
 # 	pandoc $(args) -o $@ $^
 index.markdown: site/print_page/index.html
-	cd $(<D); pixi run pandoc -s -o ../../$@ $(<F) -t gfm-raw_html
+	cd $(<D); pixi run pandoc -s -o ../../$@ $(<F) -t gfm-raw_html --extract-media=media --resource-path=site/print_page
 index.txt: site/print_page/index.html
 	cd $(<D); pixi run pandoc -s -o ../../$@ $(<F) -t plain
 

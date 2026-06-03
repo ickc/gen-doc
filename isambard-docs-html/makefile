@@ -15,7 +15,7 @@ args = -f html --file-scope
 pandoc: index.md index.html index.txt
 
 index.md: $(HTML)
-	pandoc $(args) -s -o $@ $^ -t gfm-raw_html
+	pandoc $(args) -s -o $@ $^ -t gfm-raw_html --extract-media=media --resource-path=$(DOMAIN)
 
 index.html: $(HTML)
 	pandoc $(args) -s -o $@ $^ -t html
