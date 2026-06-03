@@ -19,3 +19,9 @@
 	path = devbox/git
 	url = https://github.com/jetify-com/docs.git
 	branch = main
+[submodule "isambard-docs/git"]
+	path = isambard-docs/git
+	url = git@github.com:isambard-sc/docs.isambard.ac.uk.git
+	branch = main
+	shallow = true
+	update = none

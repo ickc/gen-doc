@@ -1,5 +1,36 @@
 This builds single file targets from documentations, primarily for the purpose of feeding into LLMs to chat with doc.
 
+# Getting started
+
+The normal update target initializes and updates the public submodules:
+
+```bash
+make update
+```
+
+After that, build the available single-file documentation targets:
+
+```bash
+make single_file
+```
+
+Some documentation sources are optional private submodules.
+They are marked with `update = none` in `.gitmodules`, so `make update` skips their initial clone.
+This lets users without access update the public submodules and build the public documentation without Git trying to clone private repositories.
+
+For a fresh checkout where you also have access to the private submodules, run both update targets:
+
+```bash
+make update update-private
+```
+
+`make update-private` only initializes and updates the optional private submodules.
+It does not replace `make update`, because it does not initialize or update the public submodules.
+The two targets are independent and complementary; the combined command above runs the public update first, then the private update.
+
+After a private submodule has been initialized once, the regular `make update` target will also run that project's own `update` target.
+Run `make update-private` again when you are setting up a fresh checkout, when a private submodule was not initialized before, or when you specifically want to refresh only the optional private submodules.
+
 # Notes
 
 Each subdirectories should contains a single documentation project. Within each, it must contains

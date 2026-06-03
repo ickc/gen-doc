@@ -1,0 +1,14 @@
+[workspace]
+name = "isambard-docs"
+version = "0.1.0"
+description = "Build single-file Isambard documentation"
+authors = ["Kolen Cheung <christian.kolen@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+pandoc = "*"
+pip = "*"
+python = ">=3.11"
