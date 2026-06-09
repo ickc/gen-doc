@@ -78,7 +78,7 @@ Current projects:
 | Project | Pattern | Source | Environment | Primary single file |
 | --- | --- | --- | --- | --- |
 | `conda-forge` | Build, extract & convert | public submodule, Docusaurus | pixi + npm | Markdown |
-| `devbox` | Simply concat | public submodule, Markdown/MDX | system tools | Markdown |
+| `devbox` | Build, serve, crawl, extract & convert | public submodule, Mintlify | pixi + pnpm | Markdown |
 | `flox` | Simply concat | public submodule, Markdown | system tools | Markdown |
 | `isambard-docs` | Tweak & rebuild | optional private submodule, MkDocs | pixi | Markdown |
 | `mamba` | Simply build | public submodule, Sphinx + Doxygen | pixi | Markdown |
@@ -97,7 +97,7 @@ Examples: `pandoc`, `Pkg.jl`
 
 In some cases, the documentation framework used in a project does not have an option to produce single file documentation. We will then simply concat all relevant doc files and call it a day.
 
-Examples: `devbox`, `flox`
+Examples: `flox`
 
 ### Crawl & concat
 
@@ -130,3 +130,14 @@ Some documentation sites can build a complete HTML site, but the built site is s
 We build the upstream site, extract the documentation body into one HTML file, then convert that file to Markdown or plain text with pandoc.
 
 Examples: `conda-forge` with Docusaurus
+
+### Build, serve, crawl, extract & convert
+
+Some documentation frameworks do not expose a static build artifact or a single-file output, but they can serve a rendered local preview.
+In that case, we use the upstream source to start a local preview server, crawl the rendered routes from that server, extract the documentation body from each page, combine the extracted bodies into one HTML file, then convert that file to Markdown or plain text with pandoc.
+
+This differs from crawling the public website.
+Because we build and serve the site ourselves, we can use the repository's navigation metadata as the site map, include local source changes that are not deployed publicly, pin and reproduce the toolchain, and control the extraction and cleanup before conversion.
+It also avoids depending on the public site's current deployment, redirects, analytics, robots rules, or unrelated page chrome.
+
+Examples: `devbox` with Mintlify
