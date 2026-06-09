@@ -1,6 +1,6 @@
 .pixi/
+node_modules/
 index.html
 index.md
 index.txt
 media/
-.poetry-install-stamp

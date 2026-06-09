@@ -1,0 +1,9 @@
+{
+  "name": "gen-doc-flox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mintlify CLI dependency for the single-file Flox documentation builder",
+  "devDependencies": {
+    "mint": "4.2.605"
+  }
+}

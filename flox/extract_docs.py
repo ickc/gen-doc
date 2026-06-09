@@ -1,62 +1,69 @@
 #!/usr/bin/env python3
-"""Extract rendered Flox docs from an MkDocs Material build."""
+"""Extract rendered Flox docs from a Mintlify preview server."""
 
 from __future__ import annotations
 
 import argparse
 import html
+import json
+import os
+import re
+import shlex
+import subprocess
+import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
-import yaml
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup
 
 
 TITLE = "Flox Documentation"
-SITE_URL = "https://flox.dev/docs/"
-SOURCE_REPOSITORY = "https://github.com/flox/floxdocs"
-DOC_EXTENSIONS = (".md",)
-EXCLUDED_SOURCE_PREFIXES = ("include/", "snippets/")
+SITE_URL = "https://flox.dev/docs"
+SOURCE_REPOSITORY = "https://github.com/flox/docs"
+DOC_EXTENSIONS = (".mdx", ".md")
+DISCOVER_EXTENSIONS = (".mdx",)
+SERVER_TIMEOUT_SECONDS = 180
+REQUEST_TIMEOUT_SECONDS = 60
+ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+LOCAL_URL_RE = re.compile(r"http://localhost:\d+")
 LANGUAGE_ALIASES = {
-    "console": "console",
-    "sh": "bash",
-    "shell": "bash",
+    "shellscript": "bash",
+    "plaintext": "text",
 }
-
-
-class MkDocsLoader(yaml.SafeLoader):
-    pass
-
-
-def unknown_constructor(loader: MkDocsLoader, _tag_suffix: str, node):
-    if isinstance(node, yaml.ScalarNode):
-        return loader.construct_scalar(node)
-    if isinstance(node, yaml.SequenceNode):
-        return loader.construct_sequence(node)
-    if isinstance(node, yaml.MappingNode):
-        return loader.construct_mapping(node)
-    return None
-
-
-MkDocsLoader.add_multi_constructor("!", unknown_constructor)
-MkDocsLoader.add_multi_constructor("tag:yaml.org,2002:python/", unknown_constructor)
 
 
 @dataclass(frozen=True)
 class Page:
+    doc_id: str
     source_path: Path
     route: str
-    html_path: Path
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True)
-    parser.add_argument("--build", type=Path, required=True)
-    parser.add_argument("--version-file", type=Path, required=True)
+    parser.add_argument("--mint-command", default="mint")
     parser.add_argument("--out", type=Path, required=True)
     return parser.parse_args()
+
+
+def strip_ansi(text: str) -> str:
+    return ANSI_RE.sub("", text)
+
+
+def iter_pages(items):
+    for item in items:
+        if isinstance(item, str):
+            yield item
+            continue
+        if not isinstance(item, dict):
+            continue
+        yield from iter_pages(item.get("pages", []))
+        for group in item.get("groups", []):
+            yield from iter_pages(group.get("pages", []))
 
 
 def unique(items):
@@ -68,285 +75,300 @@ def unique(items):
         yield item
 
 
-def is_doc_source(path: str) -> bool:
-    return path.endswith(DOC_EXTENSIONS)
+def source_for_doc_id(source: Path, doc_id: str) -> Path:
+    for suffix in DOC_EXTENSIONS:
+        candidate = source / f"{doc_id}{suffix}"
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"No source markdown file found for doc id {doc_id!r}")
 
 
-def is_support_source(path: Path, docs_root: Path) -> bool:
-    rel = path.relative_to(docs_root).as_posix()
-    return rel.startswith(EXCLUDED_SOURCE_PREFIXES)
+def doc_id_from_source(path: Path, source: Path) -> str:
+    return path.relative_to(source).with_suffix("").as_posix()
 
 
-def expand_nav_string(item: str, docs_root: Path) -> list[str]:
-    if is_doc_source(item):
-        return [item]
-
-    if "*" not in item:
-        return []
-
-    pattern = item.rsplit("|", 1)[-1].strip()
-    if not pattern:
-        return []
-
-    return [
-        path.relative_to(docs_root).as_posix()
-        for path in sorted(docs_root.glob(pattern))
-        if path.is_file() and is_doc_source(path.name)
-    ]
+def route_for_doc_id(doc_id: str) -> str:
+    if doc_id.endswith("/index"):
+        doc_id = doc_id.removesuffix("/index")
+    if doc_id == "index":
+        return "/"
+    return f"/{doc_id}"
 
 
-def iter_nav_sources(item, docs_root: Path):
-    if isinstance(item, str):
-        yield from expand_nav_string(item, docs_root)
-        return
+def nav_doc_ids(source: Path) -> list[str]:
+    docs_config = json.loads((source / "docs.json").read_text(encoding="utf-8"))
+    navigation = docs_config.get("navigation", {})
+    pages = list(iter_pages(navigation.get("pages", [])))
 
-    if isinstance(item, list):
-        for child in item:
-            yield from iter_nav_sources(child, docs_root)
-        return
+    for group in navigation.get("groups", []):
+        pages.extend(iter_pages(group.get("pages", [])))
 
-    if isinstance(item, dict):
-        for value in item.values():
-            yield from iter_nav_sources(value, docs_root)
+    for tab in navigation.get("tabs", []):
+        pages.extend(iter_pages(tab.get("pages", [])))
+        for group in tab.get("groups", []):
+            pages.extend(iter_pages(group.get("pages", [])))
 
+    for product in navigation.get("products", []):
+        pages.extend(iter_pages(product.get("pages", [])))
+        for group in product.get("groups", []):
+            pages.extend(iter_pages(group.get("pages", [])))
 
-def nav_sources(source: Path) -> list[Path]:
-    docs_root = source / "docs"
-    config = yaml.load((source / "mkdocs.yml").read_text(encoding="utf-8"), MkDocsLoader)
-    sources = []
-    for rel_path in unique(iter_nav_sources(config.get("nav", []), docs_root)):
-        path = docs_root / rel_path
-        if path.exists() and not is_support_source(path, docs_root):
-            sources.append(path)
-    return sources
+    return list(unique(pages))
 
 
-def all_doc_sources(source: Path) -> list[Path]:
-    docs_root = source / "docs"
-    return [
-        path
-        for path in sorted(docs_root.rglob("*.md"))
-        if not is_support_source(path, docs_root)
-    ]
-
-
-def route_for_source(path: Path, docs_root: Path) -> str:
-    route = path.relative_to(docs_root).with_suffix("").as_posix()
-    if route == "index":
-        return ""
-    if route.endswith("/index"):
-        return route.removesuffix("/index")
-    return route
-
-
-def html_path_for_route(build: Path, route: str) -> Path:
-    if not route:
-        return build / "index.html"
-    return build / route / "index.html"
-
-
-def ordered_pages(source: Path, build: Path) -> list[Page]:
-    docs_root = source / "docs"
-    ordered = list(nav_sources(source))
-    seen = set(ordered)
-    ordered.extend(path for path in all_doc_sources(source) if path not in seen)
-
+def ordered_pages(source: Path) -> list[Page]:
     pages = []
-    missing = []
-    for source_path in ordered:
-        route = route_for_source(source_path, docs_root)
-        html_path = html_path_for_route(build, route)
-        if not html_path.exists():
-            missing.append(str(html_path))
-            continue
-        pages.append(Page(source_path, route, html_path))
+    seen_routes = set()
+    seen_sources = set()
 
-    if missing:
-        formatted = "\n".join(f"- {path}" for path in missing)
-        raise RuntimeError(f"Built docs are missing expected pages:\n{formatted}")
+    for doc_id in nav_doc_ids(source):
+        source_path = source_for_doc_id(source, doc_id)
+        route = route_for_doc_id(doc_id)
+        pages.append(Page(doc_id, source_path, route))
+        seen_routes.add(route)
+        seen_sources.add(source_path)
+
+    remaining = sorted(
+        path
+        for suffix in DISCOVER_EXTENSIONS
+        for path in source.rglob(f"*{suffix}")
+        if path not in seen_sources and ".git" not in path.parts
+    )
+    for source_path in remaining:
+        doc_id = doc_id_from_source(source_path, source)
+        route = route_for_doc_id(doc_id)
+        if route in seen_routes:
+            continue
+        pages.append(Page(doc_id, source_path, route))
+        seen_routes.add(route)
+
     return pages
 
 
-def route_url(route: str) -> str:
-    if not route:
-        return SITE_URL
-    return urljoin(SITE_URL, f"{route}/")
+def start_preview(source: Path, mint_command: str) -> tuple[subprocess.Popen[str], str]:
+    command = [*shlex.split(mint_command), "dev", "--no-open"]
+    process = subprocess.Popen(
+        command,
+        cwd=source,
+        env={**os.environ, "NO_COLOR": "1"},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    assert process.stdout is not None
+    output = []
+    deadline = time.monotonic() + SERVER_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        line = process.stdout.readline()
+        if line:
+            output.append(line)
+            sys.stderr.write(line)
+            match = LOCAL_URL_RE.search(strip_ansi(line))
+            if match:
+                return process, match.group(0)
+        elif process.poll() is not None:
+            break
+        else:
+            time.sleep(0.1)
+
+    process.terminate()
+    raise RuntimeError(
+        "Mintlify preview did not become ready.\n"
+        + "".join(output[-40:])
+    )
 
 
-def local_asset_path(route: str, value: str) -> str:
-    if not value or urlparse(value).scheme or value.startswith("data:"):
-        return value
-    if value.startswith("/"):
-        return value.lstrip("/")
-    return urljoin(f"{route}/", value).lstrip("/")
+def fetch_html(base_url: str, route: str) -> str:
+    url = f"{base_url}{route}"
+    try:
+        with urlopen(url, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+            status = getattr(response, "status", 200)
+            if status >= 400:
+                raise RuntimeError(f"{url} returned HTTP {status}")
+            return response.read().decode("utf-8")
+    except HTTPError as exc:
+        raise RuntimeError(f"{url} returned HTTP {exc.code}") from exc
+    except URLError as exc:
+        raise RuntimeError(f"Could not fetch {url}: {exc}") from exc
 
 
-def normalize_srcset(route: str, value: str) -> str:
-    entries = []
-    for entry in value.split(","):
-        parts = entry.strip().split()
-        if not parts:
+def remove_ui_chrome(content: BeautifulSoup) -> None:
+    for svg in content.find_all("svg"):
+        svg.decompose()
+
+    for button in content.find_all("button"):
+        text = " ".join(button.get_text(" ", strip=True).lower().split())
+        label = " ".join(
+            str(button.get(attr, "")).lower()
+            for attr in ("aria-label", "title")
+        )
+        if "copy" in text or "copy" in label:
+            button.decompose()
+
+    for anchor in list(content.find_all("a")):
+        text = anchor.get_text("", strip=True).replace("\u200b", "").strip()
+        href = anchor.get("href", "")
+        if not text and href.startswith("#"):
+            anchor.decompose()
             continue
-        parts[0] = local_asset_path(route, parts[0])
-        entries.append(" ".join(parts))
-    return ", ".join(entries)
+        if anchor.get_text(" ", strip=True).lower() == "edit this page":
+            parent = anchor.parent
+            while parent is not None and parent is not content:
+                parent_text = parent.get_text(" ", strip=True).lower()
+                if (
+                    parent.name in {"p", "span", "div"}
+                    and parent_text == "edit this page"
+                ):
+                    parent.decompose()
+                    break
+                parent = parent.parent
+            else:
+                anchor.decompose()
+
+
+def normalize_headings(content: BeautifulSoup) -> None:
+    for heading in content.find_all(re.compile("^h[1-6]$")):
+        text = heading.get_text(" ", strip=True).replace("\u200b", "").strip()
+        heading.clear()
+        heading.string = text
 
 
 def language_from_classes(classes: list[str]) -> str | None:
     for class_name in classes:
         if class_name.startswith("language-"):
-            return LANGUAGE_ALIASES.get(class_name.removeprefix("language-"), class_name.removeprefix("language-"))
+            language = class_name.removeprefix("language-")
+            return LANGUAGE_ALIASES.get(language, language)
     return None
 
 
-def normalize_code_blocks(soup: BeautifulSoup, article: BeautifulSoup) -> None:
-    for pre in list(article.find_all("pre")):
+def normalize_code_blocks(content: BeautifulSoup) -> None:
+    for pre in content.find_all("pre"):
         code = pre.find("code")
-        text = code.get_text("", strip=False) if code is not None else pre.get_text("", strip=False)
         classes = []
         if code is not None:
             classes.extend(code.get("class", []))
         classes.extend(pre.get("class", []))
-        parent = pre.parent
-        if parent is not None:
-            classes.extend(parent.get("class", []))
 
-        language = language_from_classes(classes)
-        new_pre = soup.new_tag("pre")
-        new_code = soup.new_tag("code")
+        language = None
+        if code is not None:
+            language = code.get("language") or code.get("data-language")
+        language = language or pre.get("language") or pre.get("data-language")
+        language = language or language_from_classes(classes)
         if language:
-            new_code["class"] = [f"language-{language}"]
-        new_code.string = text.rstrip() + "\n"
-        new_pre.append(new_code)
+            language = LANGUAGE_ALIASES.get(language, language)
 
-        if parent is not None and parent.name == "div" and "highlight" in parent.get("class", []):
-            parent.replace_with(new_pre)
-        else:
-            pre.replace_with(new_pre)
-
-
-def normalize_iframes(soup: BeautifulSoup, article: BeautifulSoup) -> None:
-    for iframe in list(article.find_all("iframe")):
-        title = iframe.get("title") or "Embedded media"
-        src = iframe.get("src")
-        replacement = soup.new_tag("p")
-        if src:
-            link = soup.new_tag("a", href=src)
-            link.string = title
-            replacement.append(link)
-        else:
-            replacement.string = title
-        iframe.replace_with(replacement)
+        pre.attrs.clear()
+        if code is not None:
+            code.attrs.clear()
+            if language:
+                code["class"] = [f"language-{language}"]
 
 
-def normalize_links(article: BeautifulSoup, route: str) -> None:
-    base_url = route_url(route)
-    for tag in article.find_all(["img", "source"]):
-        src = tag.get("src")
-        if src:
-            tag["src"] = local_asset_path(route, src)
-        srcset = tag.get("srcset")
-        if srcset:
-            tag["srcset"] = normalize_srcset(route, srcset)
+def normalize_pseudo_blocks(content: BeautifulSoup) -> None:
+    for span in content.find_all("span", attrs={"data-as": "p"}):
+        span.name = "p"
+        span.attrs.clear()
 
-    for tag in article.find_all("a"):
+
+def normalize_links(content: BeautifulSoup) -> None:
+    for tag in content.find_all(True):
+        tag.attrs.pop("id", None)
+
+    for tag in content.find_all(["img", "source"]):
+        for attr in ("src", "srcset"):
+            value = tag.get(attr)
+            if value and value.startswith("/"):
+                tag[attr] = value.lstrip("/")
+
+    for tag in content.find_all("a"):
         href = tag.get("href")
-        if not href:
-            continue
-        parsed = urlparse(href)
-        if parsed.scheme or href.startswith("mailto:"):
-            continue
-        tag["href"] = urljoin(base_url, href)
+        if href == "/":
+            tag["href"] = SITE_URL
+        elif href and href.startswith("/"):
+            tag["href"] = f"{SITE_URL}{href}"
 
 
-def strip_attributes(article: BeautifulSoup) -> None:
-    for tag in article.find_all(True):
-        if tag.name == "a":
-            href = tag.get("href")
-            tag.attrs.clear()
-            if href:
-                tag["href"] = href
-            continue
+def page_title(soup: BeautifulSoup) -> str:
+    heading = soup.select_one("#content-area header h1") or soup.find("h1")
+    if heading is not None:
+        return heading.get_text(" ", strip=True).replace("\u200b", "").strip()
 
-        if tag.name in {"img", "source"}:
-            keep = {key: tag[key] for key in ("src", "srcset", "alt", "title") if tag.get(key)}
-            tag.attrs.clear()
-            tag.attrs.update(keep)
-            continue
+    title = soup.find("title")
+    if title is not None:
+        text = title.get_text(" ", strip=True)
+        for suffix in (" - Flox", " | Flox"):
+            if text.endswith(suffix):
+                return text.removesuffix(suffix)
+        return text
 
-        if tag.name == "code":
-            classes = tag.get("class", [])
-            tag.attrs.clear()
-            if classes:
-                tag["class"] = classes
-            continue
-
-        keep = {key: tag[key] for key in ("colspan", "rowspan") if tag.get(key)}
-        tag.attrs.clear()
-        tag.attrs.update(keep)
+    raise RuntimeError("No page title found")
 
 
-def remove_empty_spans(article: BeautifulSoup) -> None:
-    for span in list(article.find_all("span")):
-        if not span.attrs and not span.get_text(strip=True) and not span.find(["a", "code", "img"]):
-            span.decompose()
+def section_html(page: Page, rendered_html: str, source: Path) -> str:
+    soup = BeautifulSoup(rendered_html, "html.parser")
+    content = soup.select_one("#content") or soup.select_one("main article")
+    if content is None:
+        raise RuntimeError(f"No documentation content element found for {page.route}")
 
+    remove_ui_chrome(content)
+    normalize_headings(content)
+    normalize_code_blocks(content)
+    normalize_pseudo_blocks(content)
+    normalize_links(content)
 
-def clean_article(soup: BeautifulSoup, article: BeautifulSoup, route: str) -> None:
-    for comment in article.find_all(string=lambda text: isinstance(text, Comment)):
-        comment.extract()
-
-    for element in article.select("a.headerlink, a.md-content__button, script, style"):
-        element.decompose()
-
-    normalize_code_blocks(soup, article)
-    normalize_iframes(soup, article)
-
-    for svg in article.find_all("svg"):
-        svg.decompose()
-
-    remove_empty_spans(article)
-    normalize_links(article, route)
-    strip_attributes(article)
-
-
-def article_html(page: Page) -> str:
-    soup = BeautifulSoup(page.html_path.read_text(encoding="utf-8"), "html.parser")
-    article = soup.select_one("article.md-content__inner")
-    if article is None:
-        raise RuntimeError(f"No MkDocs Material article found in {page.html_path}")
-    clean_article(soup, article, page.route)
-    return article.decode_contents().replace("\u200b", "").strip()
-
-
-def section_html(page: Page, source: Path) -> str:
     source_label = page.source_path.relative_to(source).as_posix()
+    title = page_title(soup)
+    body = content.decode_contents().replace("\u200b", "")
+
     return "\n".join(
         [
             "<hr>",
             f'<section data-source="{html.escape(source_label)}" data-route="{html.escape(page.route)}">',
             f"<p><strong>From {html.escape(source_label)}</strong></p>",
-            article_html(page),
+            f"<h2>{html.escape(title)}</h2>",
+            body,
             "</section>",
         ]
     )
 
 
-def version_text(version_file: Path) -> str:
+def stop_preview(process: subprocess.Popen[str]) -> None:
+    if process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+def version_text(source: Path) -> str:
+    version_file = source / "FLOX_VERSION"
     if not version_file.exists():
         return ""
     version = version_file.read_text(encoding="utf-8").strip()
     if not version:
         return ""
-    return f"<p>Flox command reference version: {html.escape(version)}</p>"
+    return f"<p>Flox CLI reference version: {html.escape(version)}</p>"
 
 
 def main() -> None:
     args = parse_args()
     source = args.source.resolve()
-    build = args.build.resolve()
+    pages = ordered_pages(source)
 
-    sections = [section_html(page, source) for page in ordered_pages(source, build)]
+    process, base_url = start_preview(source, args.mint_command)
+    sections = []
+    try:
+        for index, page in enumerate(pages, start=1):
+            print(f"Fetching {index}/{len(pages)} {page.route}", file=sys.stderr)
+            rendered = fetch_html(base_url, page.route)
+            sections.append(section_html(page, rendered, source))
+    finally:
+        stop_preview(process)
 
     args.out.write_text(
         "\n".join(
@@ -358,7 +380,7 @@ def main() -> None:
                 f"<h1>{TITLE}</h1>",
                 f'<p>Source site: <a href="{SITE_URL}">{SITE_URL}</a></p>',
                 f'<p>Source repository: <a href="{SOURCE_REPOSITORY}">{SOURCE_REPOSITORY}</a></p>',
-                version_text(args.version_file),
+                version_text(source),
                 *sections,
                 "</body>",
                 "</html>",

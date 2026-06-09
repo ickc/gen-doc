@@ -79,7 +79,7 @@ Current projects:
 | --- | --- | --- | --- | --- |
 | `conda-forge` | Build, extract & convert | public submodule, Docusaurus | pixi + npm | Markdown |
 | `devbox` | Build, serve, crawl, extract & convert | public submodule, Mintlify | pixi + pnpm | Markdown |
-| `flox` | Build, extract & convert | public submodule, MkDocs | pixi + Poetry | Markdown |
+| `flox` | Build, serve, crawl, extract & convert | public submodule, Mintlify | pixi + npm | Markdown |
 | `isambard-docs` | Tweak & rebuild | optional private submodule, MkDocs | pixi | Markdown |
 | `mamba` | Simply build | public submodule, Sphinx + Doxygen | pixi | Markdown |
 | `nersc` | Tweak & rebuild | public submodule, MkDocs | pixi | Markdown |
@@ -132,7 +132,6 @@ We build the upstream site, extract the documentation body into one HTML file, t
 Examples:
 
 - `conda-forge` with Docusaurus
-- `flox` with MkDocs Material. The Flox target also generates command reference pages from the current stable Flox release before building the MkDocs site, then extracts rendered article content and converts it with pandoc.
 
 ### Build, serve, crawl, extract & convert
 
@@ -143,4 +142,7 @@ This differs from crawling the public website.
 Because we build and serve the site ourselves, we can use the repository's navigation metadata as the site map, include local source changes that are not deployed publicly, pin and reproduce the toolchain, and control the extraction and cleanup before conversion.
 It also avoids depending on the public site's current deployment, redirects, analytics, robots rules, or unrelated page chrome.
 
-Examples: `devbox` with Mintlify
+Examples:
+
+- `devbox` with Mintlify
+- `flox` with Mintlify. The Flox target uses the new `flox/docs` repository, installs a local pinned Mintlify CLI with npm, serves the preview locally, crawls the routes listed in `docs.json`, extracts rendered documentation content, and converts it with pandoc.

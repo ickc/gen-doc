@@ -10,8 +10,6 @@ platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
 beautifulsoup4 = ">=4.12,<5"
-d2 = "*"
+nodejs = ">=22,<25"
 pandoc = "*"
-poetry = "*"
 python = "3.11.*"
-pyyaml = "*"

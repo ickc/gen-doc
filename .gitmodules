@@ -15,7 +15,7 @@
 	shallow = true
 [submodule "flox/git"]
 	path = flox/git
-	url = https://github.com/flox/floxdocs.git
+	url = https://github.com/flox/docs.git
 	branch = main
 	shallow = true
 [submodule "spack/git"]
