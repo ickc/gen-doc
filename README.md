@@ -79,7 +79,7 @@ Current projects:
 | --- | --- | --- | --- | --- |
 | `conda-forge` | Build, extract & convert | public submodule, Docusaurus | pixi + npm | Markdown |
 | `devbox` | Build, serve, crawl, extract & convert | public submodule, Mintlify | pixi + pnpm | Markdown |
-| `flox` | Simply concat | public submodule, Markdown | system tools | Markdown |
+| `flox` | Build, extract & convert | public submodule, MkDocs | pixi + Poetry | Markdown |
 | `isambard-docs` | Tweak & rebuild | optional private submodule, MkDocs | pixi | Markdown |
 | `mamba` | Simply build | public submodule, Sphinx + Doxygen | pixi | Markdown |
 | `nersc` | Tweak & rebuild | public submodule, MkDocs | pixi | Markdown |
@@ -97,7 +97,7 @@ Examples: `pandoc`, `Pkg.jl`
 
 In some cases, the documentation framework used in a project does not have an option to produce single file documentation. We will then simply concat all relevant doc files and call it a day.
 
-Examples: `flox`
+There are no current projects using this pattern.
 
 ### Crawl & concat
 
@@ -129,7 +129,10 @@ Examples:
 Some documentation sites can build a complete HTML site, but the built site is split across routes and contains navigation or generated pages we do not want verbatim.
 We build the upstream site, extract the documentation body into one HTML file, then convert that file to Markdown or plain text with pandoc.
 
-Examples: `conda-forge` with Docusaurus
+Examples:
+
+- `conda-forge` with Docusaurus
+- `flox` with MkDocs Material. The Flox target also generates command reference pages from the current stable Flox release before building the MkDocs site, then extracts rendered article content and converts it with pandoc.
 
 ### Build, serve, crawl, extract & convert
 
