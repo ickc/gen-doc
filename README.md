@@ -80,7 +80,6 @@ Current projects:
 | `conda-forge` | Build, extract & convert | public submodule, Docusaurus | pixi + npm | Markdown |
 | `devbox` | Simply concat | public submodule, Markdown/MDX | system tools | Markdown |
 | `flox` | Simply concat | public submodule, Markdown | system tools | Markdown |
-| `isambard-docs-html` | Crawl & concat | crawled public HTML | system tools | Markdown |
 | `isambard-docs` | Tweak & rebuild | optional private submodule, MkDocs | pixi | Markdown |
 | `mamba` | Simply build | public submodule, Sphinx + Doxygen | pixi | Markdown |
 | `nersc` | Tweak & rebuild | public submodule, MkDocs | pixi | Markdown |
