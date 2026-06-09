@@ -33,7 +33,9 @@ Run `make update-private` again when you are setting up a fresh checkout, when a
 
 # Notes
 
-Each subdirectories should contains a single documentation project. Within each, it must contains
+The root `build/` directory, when present, is aggregate output.
+Every other first-level project directory is its own documentation project.
+Within each project, it must contain
 
 - `makefile` with targets `single_file`, `all`, `clean`, `Clean`, `update`.
 
@@ -71,6 +73,23 @@ In some cases, tools involve is commonly available on UNIX and hence a custom en
 
 ## Patterns
 
+Current projects:
+
+| Project | Pattern | Source | Environment | Primary single file |
+| --- | --- | --- | --- | --- |
+| `conda-forge` | Build, extract & convert | public submodule, Docusaurus | pixi + npm | Markdown |
+| `devbox` | Simply concat | public submodule, Markdown/MDX | system tools | Markdown |
+| `flox` | Simply concat | public submodule, Markdown | system tools | Markdown |
+| `isambard-docs-html` | Crawl & concat | crawled public HTML | system tools | Markdown |
+| `isambard-docs` | Tweak & rebuild | optional private submodule, MkDocs | pixi | Markdown |
+| `mamba` | Simply build | public submodule, Sphinx + Doxygen | pixi | Markdown |
+| `nersc` | Tweak & rebuild | public submodule, MkDocs | pixi | Markdown |
+| `pandoc` | Simply Download | release artifact | system tools | Markdown |
+| `pixi` | Tweak & rebuild | public submodule, MkDocs | pixi | Markdown |
+| `Pkg.jl` | Simply Download | release artifact | system tools | PDF |
+| `python-patterns` | Simply build | public submodule, Sphinx | pixi | Markdown |
+| `spack` | Simply build | public submodule, Sphinx | pixi | plain text |
+
 ### Simply Download
 
 Examples: `pandoc`, `Pkg.jl`
@@ -83,7 +102,8 @@ Examples: `devbox`, `flox`
 
 ### Crawl & concat
 
-Some projects doesn't even provide the source of documentation. We will use this recipe instead:
+Some projects do not provide the source of documentation, or the source is not available locally.
+We use this recipe instead:
 
 1. crawl by wget
 2. convert to markdown by pandoc
@@ -95,7 +115,7 @@ Previous example: [`flox`](https://github.com/ickc/gen-doc/blob/416d3a941537cd76
 
 We will use the original build system to produce a single file target that is not provided.
 
-Examples: `python-patterns`, `gw4-isambard`, `spack` with sphinx
+Examples: `python-patterns`, `spack`, `mamba` with sphinx
 
 ### Tweak & rebuild
 
@@ -103,4 +123,11 @@ We would dive into the doc build framework and tweak it so that single file targ
 
 Examples:
 
-- `nersc`, `pixi` with mkdocs and additional plugin `print-site`
+- `nersc`, `pixi`, `isambard-docs` with MkDocs and additional plugin `print-site`
+
+### Build, extract & convert
+
+Some documentation sites can build a complete HTML site, but the built site is split across routes and contains navigation or generated pages we do not want verbatim.
+We build the upstream site, extract the documentation body into one HTML file, then convert that file to Markdown or plain text with pandoc.
+
+Examples: `conda-forge` with Docusaurus
