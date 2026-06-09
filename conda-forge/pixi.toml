@@ -1,0 +1,16 @@
+[workspace]
+name = "conda-forge"
+version = "0.1.0"
+description = "Single-file conda-forge documentation builder"
+authors = ["Kolen Cheung <christian.kolen@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+python = "*"
+nodejs = ">=20,<25"
+pandoc = "*"
+beautifulsoup4 = ">=4.12,<5"
+requests = "*"

@@ -29,3 +29,8 @@
 	path = mamba/git
 	url = https://github.com/mamba-org/mamba
 	branch = main
+[submodule "conda-forge/git"]
+	path = conda-forge/git
+	url = https://github.com/conda-forge/conda-forge.github.io.git
+	branch = main
+	shallow = true
