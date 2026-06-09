@@ -6,19 +6,28 @@
 [submodule "python-patterns/git"]
 	path = python-patterns/git
 	url = https://github.com/brandon-rhodes/python-patterns.git
+	branch = master
+	shallow = true
 [submodule "pixi/git"]
 	path = pixi/git
 	url = https://github.com/prefix-dev/pixi.git
+	branch = main
+	shallow = true
 [submodule "flox/git"]
 	path = flox/git
 	url = https://github.com/flox/floxdocs.git
+	branch = main
+	shallow = true
 [submodule "spack/git"]
 	path = spack/git
 	url = https://github.com/spack/spack.git
+	branch = develop
+	shallow = true
 [submodule "devbox/git"]
 	path = devbox/git
 	url = https://github.com/jetify-com/docs.git
 	branch = main
+	shallow = true
 [submodule "isambard-docs/git"]
 	path = isambard-docs/git
 	url = git@github.com:isambard-sc/docs.isambard.ac.uk.git
@@ -29,6 +38,7 @@
 	path = mamba/git
 	url = https://github.com/mamba-org/mamba
 	branch = main
+	shallow = true
 [submodule "conda-forge/git"]
 	path = conda-forge/git
 	url = https://github.com/conda-forge/conda-forge.github.io.git
