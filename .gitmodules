@@ -25,3 +25,7 @@
 	branch = main
 	shallow = true
 	update = none
+[submodule "mamba/git"]
+	path = mamba/git
+	url = https://github.com/mamba-org/mamba
+	branch = main

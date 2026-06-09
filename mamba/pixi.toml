@@ -1,0 +1,20 @@
+[workspace]
+name = "mamba"
+version = "0.1.0"
+description = "Build single-file Mamba documentation"
+authors = ["Kolen Cheung <christian.kolen@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+breathe = "*"
+doxygen = "*"
+myst-parser = "*"
+pandoc = "*"
+python = ">=3.10,<3.12"
+six = "*"
+sphinx = "6.*"
+sphinx-book-theme = "*"
+sphinx-copybutton = "*"
