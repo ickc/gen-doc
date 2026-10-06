@@ -4,6 +4,6 @@
   "private": true,
   "description": "Mintlify CLI dependency for the single-file Flox documentation builder",
   "devDependencies": {
-    "mint": "4.2.605"
+    "mint": "4.2.946"
   }
 }
